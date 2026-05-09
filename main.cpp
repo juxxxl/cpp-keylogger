@@ -73,7 +73,7 @@ static void write_to_file(std::string str, std::string filename) {
 
   ++params::counter;
 
-  if ( str == "[ENTER]" ) {
+  if ( str == "[Enter]" ) {
 
       file << std::endl;
 

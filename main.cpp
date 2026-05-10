@@ -107,7 +107,7 @@ int main() {
   while (true) {
       libinput_dispatch(li);
       struct libinput_event *ev;
-      while ((ev = libinput_get_event(li))) {                                                 // whole thing pasted from documentation not even gonna lie ( except the write part)
+      while ((ev = libinput_get_event(li))) {                                                 
           if (libinput_event_get_type(ev) == LIBINPUT_EVENT_KEYBOARD_KEY) {
               auto *kb = libinput_event_get_keyboard_event(ev);
               uint32_t key   = libinput_event_keyboard_get_key(kb);
@@ -125,3 +125,5 @@ int main() {
 
 }
 
+// to do: error handling in main function || file opening & closing all the time is inefficient change that --
+//.       change my weird newline logjc 

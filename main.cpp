@@ -121,9 +121,7 @@ int main() {
       }
   }
  
-
-
 }
 
 // to do: error handling in main function || file opening & closing all the time is inefficient change that --
-//.       change my weird newline logjc 
+//.       change my weird newline logic 
